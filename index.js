@@ -15,15 +15,30 @@ async function createGazetteer(dbPath) {
       const indices = spatialIndex.search(lon, lat, lon, lat)
       const candidates = await Promise.all(
         indices.map(idx => {
-          const {code} = items[idx]
-          return db.get(code)
+          const {id} = items[idx]
+          return db.get(id)
         })
       )
       const point = {type: 'Point', coordinates: [lon, lat]}
       const results = candidates.filter(item => booleanPointInPolygon(point, item.contour))
-      return results.length > 0 ? prepareOutput(results[0]) : null
+
+      return results.length > 0 ? prepareOutput(selectBestResult(results)) : null
     }
   }
+}
+
+function selectBestResult(candidates) {
+  const communeAncienne = candidates.find(c => c.type === 'commune-ancienne')
+  if (communeAncienne) {
+    return communeAncienne
+  }
+
+  const arrondissementMunicipal = candidates.find(c => c.type === 'arrondissement-municipal')
+  if (arrondissementMunicipal) {
+    return arrondissementMunicipal
+  }
+
+  return candidates[0]
 }
 
 module.exports = {createGazetteer}

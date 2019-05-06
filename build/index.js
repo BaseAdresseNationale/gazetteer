@@ -28,43 +28,44 @@ async function main() {
   const db = new Keyv('sqlite://db.sqlite')
   await db.clear()
   console.time('chargement des communes')
-  const communesFeatures = await readShapefile(join(DATA_DIR, COMMUNES_FILENAME))
+  const communesFeatures = (await readShapefile(join(DATA_DIR, COMMUNES_FILENAME)))
+    .map(f => addType(f, 'commune'))
   console.timeEnd('chargement des communes')
 
   console.time('chargement des arrondissements municipaux')
-  const arrondissementsMunicipauxFeatures = await readShapefile(join(DATA_DIR, ARRONDISSEMENTS_MUNICIPAUX_FILENAME))
+  const arrondissementsMunicipauxFeatures = (await readShapefile(join(DATA_DIR, ARRONDISSEMENTS_MUNICIPAUX_FILENAME)))
+    .map(f => addType(f, 'arrondissement-municipal'))
   console.timeEnd('chargement des arrondissements municipaux')
 
   console.time('chargement des communes anciennes')
   const communesAnciennesFeatures = await readShapefile(join(DATA_DIR, COMMUNES_ANCIENNES_FILENAME))
   console.timeEnd('chargement des communes anciennes')
 
-  const indexedFeatures = keyBy(communesFeatures.map(addType, 'commune'), f => f.properties.insee)
-  arrondissementsMunicipauxFeatures.forEach(f => {
-    indexedFeatures[f.properties.insee] = addType(f, 'arrondissement-municipal')
-  })
-  PLM.forEach(codeArrondissement => {
-    delete indexedFeatures[codeArrondissement]
-  })
+  const features = communesFeatures
+    .filter(c => !PLM.includes(c.properties.insee))
+    .concat(arrondissementsMunicipauxFeatures)
+
   communesAnciennesFeatures.forEach(f => {
     if (!COMMUNES_ANCIENNES_TYPES.includes(f.properties.status)) {
       return
     }
 
-    const codeActuel = getCodeActuel(f.properties.insee)
-    if (codeActuel) {
-      delete indexedFeatures[codeActuel]
-      indexedFeatures[f.properties.insee] = addType(f, 'commune-ancienne')
-    }
+    features.push(addType(f, 'commune-ancienne'))
   })
 
   const items = []
 
   console.time('sauvegarde')
-  await bluebird.each(Object.values(indexedFeatures), async f => {
-    const code = f.properties.insee
-    await db.set(code, {nom: f.properties.nom, code, type: f.properties.type, contour: f.geometry})
-    items.push({code, bbox: bbox(f)})
+  await bluebird.each(features, async f => {
+    const i = items.length
+    const id = `item_${i}`
+    await db.set(id, {
+      nom: f.properties.nom,
+      code: f.properties.insee,
+      type: f.properties.type,
+      contour: f.geometry
+    })
+    items.push({id, bbox: bbox(f)})
   })
   await db.set('items', items)
   console.timeEnd('sauvegarde')
