@@ -1,0 +1,39 @@
+{
+  "name": "@etalab/gazetteer",
+  "version": "0.0.0",
+  "description": "Lightweight gazetteer for France 🇫🇷",
+  "main": "index.js",
+  "repository": "https://github.com/etalab/gazetteer",
+  "author": "Jérôme Desboeufs <jerome.desboeufs@data.gouv.fr>",
+  "license": "MIT",
+  "private": false,
+  "files": [
+    "index.js",
+    "lib"
+  ],
+  "scripts": {
+    "lint": "xo",
+    "build": "node --max-old-space-size=8192 build"
+  },
+  "dependencies": {
+    "@etalab/decoupage-administratif": "^0.5.1",
+    "@keyv/sqlite": "^2.0.0",
+    "@turf/boolean-point-in-polygon": "^6.0.1",
+    "flatbush": "^3.1.1",
+    "keyv": "^3.1.0",
+    "lodash": "^4.17.11"
+  },
+  "devDependencies": {
+    "@turf/bbox": "^6.0.1",
+    "bluebird": "^3.5.4",
+    "gdal": "^0.9.8",
+    "xo": "^0.24.0"
+  },
+  "xo": {
+    "semicolon": false,
+    "space": "2"
+  },
+  "engines": {
+    "node": ">= 10"
+  }
+}
