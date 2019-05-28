@@ -2,9 +2,7 @@
 const {join} = require('path')
 const Keyv = require('keyv')
 const bluebird = require('bluebird')
-const {keyBy} = require('lodash')
 const bbox = require('@turf/bbox').default
-const {getCodeActuel} = require('../lib/cog')
 const {readShapefile} = require('./shp')
 
 const COMMUNES_FILENAME = 'communes-20190101-shp.zip'
