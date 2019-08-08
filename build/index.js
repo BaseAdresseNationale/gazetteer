@@ -6,7 +6,7 @@ const bbox = require('@turf/bbox').default
 const {readShapefile} = require('./shp')
 
 const COMMUNES_FILENAME = 'communes-20190101-shp.zip'
-const COMMUNES_ANCIENNES_FILENAME = 'communes-anciennes-20190101-shp.zip'
+const COMMUNES_ANCIENNES_FILENAME = 'communes-anciennes-20190808-shp.zip'
 const ARRONDISSEMENTS_MUNICIPAUX_FILENAME = 'arrondissements-municipaux-20180711-shp.zip'
 
 const PLM = ['75056', '13055', '69123']
@@ -44,11 +44,17 @@ async function main() {
     .concat(arrondissementsMunicipauxFeatures)
 
   communesAnciennesFeatures.forEach(f => {
-    if (!COMMUNES_ANCIENNES_TYPES.includes(f.properties.status)) {
-      return
+    if (COMMUNES_ANCIENNES_TYPES.includes(f.properties.admin_type)) {
+      features.push({
+        type: 'Feature',
+        geometry: f.geometry,
+        properties: {
+          nom: f.properties.name,
+          insee: f.properties.ref_INSEE,
+          type: 'commune-ancienne'
+        }
+      })
     }
-
-    features.push(addType(f, 'commune-ancienne'))
   })
 
   const items = []
