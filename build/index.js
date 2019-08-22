@@ -3,6 +3,7 @@ const {join} = require('path')
 const Keyv = require('keyv')
 const bluebird = require('bluebird')
 const bbox = require('@turf/bbox').default
+const {getCommuneActuelle} = require('../lib/cog')
 const {readShapefile} = require('./shp')
 
 const COMMUNES_FILENAME = 'communes-20190101-shp.zip'
@@ -44,6 +45,11 @@ async function main() {
     .concat(arrondissementsMunicipauxFeatures)
 
   communesAnciennesFeatures.forEach(f => {
+    if (!f.properties.ref_INSEE || !getCommuneActuelle(f.properties.ref_INSEE)) {
+      console.log(`Commune actuelle introuvable pour le code INSEE ${f.properties.ref_INSEE}`)
+      return
+    }
+
     if (COMMUNES_ANCIENNES_TYPES.includes(f.properties.admin_type)) {
       features.push({
         type: 'Feature',
