@@ -29,7 +29,7 @@
   "devDependencies": {
     "@turf/bbox": "^6.0.1",
     "bluebird": "^3.5.5",
-    "gdal": "^0.9.9",
+    "gdal-next": "^2.3.0",
     "xo": "^0.24.0"
   },
   "xo": {

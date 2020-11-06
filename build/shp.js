@@ -1,4 +1,4 @@
-const gdal = require('gdal')
+const gdal = require('gdal-next')
 
 async function readShapefile(path) {
   const dataset = gdal.open(`/vsizip/${path}`)
