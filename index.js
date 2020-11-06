@@ -1,4 +1,5 @@
 const Flatbush = require('flatbush')
+const Cache = require('lru-cache')
 const Keyv = require('keyv')
 const booleanPointInPolygon = require('@turf/boolean-point-in-polygon').default
 const {prepareOutput} = require('./lib/result')
@@ -11,8 +12,8 @@ async function createGazetteer(options = {}) {
   }
 
   const _db = new Keyv('sqlite://' + dbPath)
-  const _cache = new Map()
-  const _cacheEnabled = options.cache === true
+  const _cache = new Cache(options.cacheSize || 0)
+  const _cacheEnabled = options.cacheEnabled === true
   const _items = await _db.get('items')
   const _spatialIndex = new Flatbush(_items.length)
 
@@ -50,7 +51,7 @@ async function createGazetteer(options = {}) {
 
     clearCache() {
       if (_cacheEnabled) {
-        _cache.clear()
+        _cache.reset()
       }
     },
 
