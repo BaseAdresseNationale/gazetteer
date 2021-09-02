@@ -1,6 +1,6 @@
 #!/usr/bin/env node --max-old-space-size=8192
 const {join} = require('path')
-const Keyv = require('keyv')
+const Keyv = require('@livingdata/keyv')
 const bluebird = require('bluebird')
 const bbox = require('@turf/bbox').default
 const {getCommuneActuelle} = require('../lib/cog')
