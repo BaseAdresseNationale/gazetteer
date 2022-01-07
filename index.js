@@ -1,6 +1,6 @@
 const Flatbush = require('flatbush')
 const Cache = require('lru-cache')
-const Keyv = require('@livingdata/keyv')
+const Keyv = require('keyv')
 const booleanPointInPolygon = require('@turf/boolean-point-in-polygon').default
 const {prepareOutput} = require('./lib/result')
 

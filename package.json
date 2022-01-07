@@ -20,17 +20,17 @@
   },
   "dependencies": {
     "@etalab/decoupage-administratif": "^0.6.2",
-    "@livingdata/keyv": "^4.1.0",
-    "@livingdata/keyv-sqlite": "^2.1.0",
+    "@keyv/sqlite": "^2.0.4",
     "@turf/boolean-point-in-polygon": "^6.0.1",
     "flatbush": "^3.1.1",
+    "keyv": "^4.0.4",
     "lodash": "^4.17.15",
     "lru-cache": "^6.0.0"
   },
   "devDependencies": {
     "@turf/bbox": "^6.0.1",
     "bluebird": "^3.5.5",
-    "gdal-next": "^2.3.0",
+    "gdal-next": "^2.8.0",
     "xo": "^0.24.0"
   },
   "xo": {
@@ -38,6 +38,6 @@
     "space": "2"
   },
   "engines": {
-    "node": ">= 12"
+    "node": ">= 16"
   }
 }
