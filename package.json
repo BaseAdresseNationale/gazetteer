@@ -31,11 +31,19 @@
     "@turf/bbox": "^6.5.0",
     "bluebird": "^3.7.2",
     "gdal-next": "^2.8.0",
-    "xo": "^0.24.0"
+    "xo": "^0.48.0"
   },
   "xo": {
     "semicolon": false,
-    "space": "2"
+    "space": "2",
+    "rules": {
+      "comma-dangle": ["error", "never"],
+      "unicorn/prefer-module": "off",
+      "import/extensions": "off",
+      "node/prefer-global/process": "off",
+      "unicorn/no-array-reduce": "off",
+      "unicorn/prefer-object-from-entries": "off"
+    }
   },
   "engines": {
     "node": ">= 16"
