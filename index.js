@@ -17,7 +17,10 @@ async function createGazetteer(options = {}) {
   const _items = await _db.get('items')
   const _spatialIndex = new Flatbush(_items.length)
 
-  _items.forEach(c => _spatialIndex.add(...c.bbox))
+  for (const c of _items) {
+    _spatialIndex.add(...c.bbox)
+  }
+
   _spatialIndex.finish()
 
   async function _getItem(id) {

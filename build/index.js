@@ -1,5 +1,5 @@
 #!/usr/bin/env node --max-old-space-size=8192
-const {join} = require('path')
+const path = require('path')
 const Keyv = require('keyv')
 const bluebird = require('bluebird')
 const bbox = require('@turf/bbox').default
@@ -10,8 +10,8 @@ const COMMUNES_FILENAME = 'communes-20190101-shp.zip'
 const COMMUNES_ANCIENNES_FILENAME = 'communes-anciennes-20190808-shp.zip'
 const ARRONDISSEMENTS_MUNICIPAUX_FILENAME = 'arrondissements-municipaux-20180711-shp.zip'
 
-const PLM = ['75056', '13055', '69123']
-const COMMUNES_ANCIENNES_TYPES = [
+const PLM = new Set(['75056', '13055', '69123'])
+const COMMUNES_ANCIENNES_TYPES = new Set([
   'commune associée',
   'commune déléguée',
   'commune centre',
@@ -19,38 +19,41 @@ const COMMUNES_ANCIENNES_TYPES = [
   'ancienne commune',
   'commune associé',
   'ancienne commune déléguée'
-]
+])
 
-const DATA_DIR = join(__dirname, '..', 'data')
+const DATA_DIR = path.join(__dirname, '..', 'data')
 
 async function main() {
   const db = new Keyv('sqlite://db.sqlite')
   await db.clear()
   console.time('chargement des communes')
-  const communesFeatures = (await readShapefile(join(DATA_DIR, COMMUNES_FILENAME)))
+  const readCommunesFeatures = await readShapefile(path.join(DATA_DIR, COMMUNES_FILENAME))
+  const communesFeatures = readCommunesFeatures
     .map(f => addType(f, 'commune'))
   console.timeEnd('chargement des communes')
 
   console.time('chargement des arrondissements municipaux')
-  const arrondissementsMunicipauxFeatures = (await readShapefile(join(DATA_DIR, ARRONDISSEMENTS_MUNICIPAUX_FILENAME)))
+  const readArrondissementsMunicipauxFeatures = await readShapefile(path.join(DATA_DIR, ARRONDISSEMENTS_MUNICIPAUX_FILENAME))
+  const arrondissementsMunicipauxFeatures = readArrondissementsMunicipauxFeatures
     .map(f => addType(f, 'arrondissement-municipal'))
   console.timeEnd('chargement des arrondissements municipaux')
 
   console.time('chargement des communes anciennes')
-  const communesAnciennesFeatures = await readShapefile(join(DATA_DIR, COMMUNES_ANCIENNES_FILENAME))
+  const communesAnciennesFeatures = await readShapefile(path.join(DATA_DIR, COMMUNES_ANCIENNES_FILENAME))
   console.timeEnd('chargement des communes anciennes')
 
-  const features = communesFeatures
-    .filter(c => !PLM.includes(c.properties.insee))
-    .concat(arrondissementsMunicipauxFeatures)
+  const features = [
+    ...communesFeatures.filter(c => !PLM.has(c.properties.insee)),
+    ...arrondissementsMunicipauxFeatures
+  ]
 
-  communesAnciennesFeatures.forEach(f => {
+  for (const f of communesAnciennesFeatures) {
     if (!f.properties.ref_INSEE || !getCommuneActuelle(f.properties.ref_INSEE)) {
       console.log(`Commune actuelle introuvable pour le code INSEE ${f.properties.ref_INSEE}`)
-      return
+      continue
     }
 
-    if (COMMUNES_ANCIENNES_TYPES.includes(f.properties.admin_type)) {
+    if (COMMUNES_ANCIENNES_TYPES.has(f.properties.admin_type)) {
       features.push({
         type: 'Feature',
         geometry: f.geometry,
@@ -61,7 +64,7 @@ async function main() {
         }
       })
     }
-  })
+  }
 
   const items = []
 
