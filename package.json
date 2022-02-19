@@ -3,7 +3,7 @@
   "version": "0.0.8",
   "description": "Lightweight gazetteer for France 🇫🇷",
   "main": "index.js",
-  "repository": "https://github.com/etalab/gazetteer",
+  "repository": "https://github.com/BaseAdresseNationale/gazetteer",
   "author": "Jérôme Desboeufs <jerome.desboeufs@data.gouv.fr>",
   "license": "MIT",
   "private": false,
