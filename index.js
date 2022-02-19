@@ -12,7 +12,7 @@ async function createGazetteer(options = {}) {
   }
 
   const _db = new Keyv('sqlite://' + dbPath)
-  const _cache = new Cache(options.cacheSize || 0)
+  const _cache = new Cache({max: options.cacheSize || 100})
   const _cacheEnabled = options.cacheEnabled === true
   const _items = await _db.get('items')
   const _spatialIndex = new Flatbush(_items.length)
@@ -54,7 +54,7 @@ async function createGazetteer(options = {}) {
 
     clearCache() {
       if (_cacheEnabled) {
-        _cache.reset()
+        _cache.clear()
       }
     },
 
