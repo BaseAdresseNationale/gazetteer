@@ -1,17 +1,27 @@
 #!/usr/bin/env node --max-old-space-size=8192
+const zlib = require('zlib')
+const {promisify} = require('util')
+const {chain, keyBy} = require('lodash')
 const Keyv = require('keyv')
-const bluebird = require('bluebird')
 const got = require('got')
 const bbox = require('@turf/bbox').default
-const {getCommuneActuelle} = require('../lib/cog')
+const intersect = require('@turf/intersect').default
+const {getCommuneActuelle, getCommune} = require('../lib/cog')
 const {readShapefile} = require('./read-shapefile')
 
-const COMMUNES_URL = 'https://osm13.openstreetmap.fr/~cquest/openfla/export/communes-20190101-shp.zip'
-const COMMUNES_ANCIENNES_URL = 'https://osm13.openstreetmap.fr/~cquest/openfla/export/communes-anciennes-20190808-shp.zip'
-const ARRONDISSEMENTS_MUNICIPAUX_URL = 'https://osm13.openstreetmap.fr/~cquest/openfla/export/arrondissements-municipaux-20180711-shp.zip'
+const gunzip = promisify(zlib.gunzip)
+
+const COMMUNES_URL = 'http://etalab-datasets.geo.data.gouv.fr/contours-administratifs/2022/geojson/communes-5m.geojson.gz'
+const COMMUNES_ANCIENNES_URL = 'https://osm13.openstreetmap.fr/~cquest/openfla/export/communes-anciennes-20220101-shp.zip'
 
 function downloadFile(url) {
   return got(url).buffer()
+}
+
+async function downloadGeoJsonGzAsFeatures(url) {
+  const gzippedData = await got(url).buffer()
+  const gunzippedData = await gunzip(gzippedData)
+  return JSON.parse(gunzippedData).features
 }
 
 const PLM = new Set(['75056', '13055', '69123'])
@@ -22,69 +32,79 @@ const COMMUNES_ANCIENNES_TYPES = new Set([
   'commune fusionnée',
   'ancienne commune',
   'commune associé',
-  'ancienne commune déléguée'
+  'ancienne commune déléguée',
+  'commune chef-lieu d\'une association'
 ])
 
 async function main() {
   const db = new Keyv('sqlite://gazetteer.sqlite')
   await db.clear()
   console.time('chargement des communes')
-  const communesFile = await downloadFile(COMMUNES_URL)
-  const readCommunesFeatures = await readShapefile(communesFile, 5)
-  const communesFeatures = readCommunesFeatures
-    .map(f => addType(f, 'commune'))
+  const readCommunesFeatures = await downloadGeoJsonGzAsFeatures(COMMUNES_URL)
   console.timeEnd('chargement des communes')
 
-  console.time('chargement des arrondissements municipaux')
-  const arrondissementsMunicipauxFile = await downloadFile(ARRONDISSEMENTS_MUNICIPAUX_URL)
-  const readArrondissementsMunicipauxFeatures = await readShapefile(arrondissementsMunicipauxFile, 5)
-  const arrondissementsMunicipauxFeatures = readArrondissementsMunicipauxFeatures
-    .map(f => addType(f, 'arrondissement-municipal'))
-  console.timeEnd('chargement des arrondissements municipaux')
+  const communesFeatures = readCommunesFeatures
+    .filter(f => !PLM.has(f.properties.code))
+    .map(f => getCommune(f.properties.code).commune ? addType(f, 'arrondissement-municipal') : addType(f, 'commune'))
+
+  const communesFeaturesIndex = keyBy(communesFeatures, f => f.properties.code)
 
   console.time('chargement des communes anciennes')
   const communesAnciennesFile = await downloadFile(COMMUNES_ANCIENNES_URL)
-  const communesAnciennesFeatures = await readShapefile(communesAnciennesFile, 5)
+  const readCommunesAnciennesFeatures = await readShapefile(communesAnciennesFile, 5)
   console.timeEnd('chargement des communes anciennes')
 
-  const features = [
-    ...communesFeatures.filter(c => !PLM.has(c.properties.insee)),
-    ...arrondissementsMunicipauxFeatures
-  ]
+  const communesAnciennesFeatures = []
 
-  for (const f of communesAnciennesFeatures) {
-    if (!f.properties.ref_INSEE || !getCommuneActuelle(f.properties.ref_INSEE)) {
-      console.log(`Commune actuelle introuvable pour le code INSEE ${f.properties.ref_INSEE}`)
+  for (const f of readCommunesAnciennesFeatures) {
+    const codeCommuneAncienne = f.properties.insee
+
+    if (!codeCommuneAncienne || !getCommuneActuelle(codeCommuneAncienne)) {
+      console.log(`Commune actuelle introuvable pour le code INSEE ${f.properties.insee}`)
       continue
     }
 
-    if (COMMUNES_ANCIENNES_TYPES.has(f.properties.admin_type)) {
-      features.push({
-        type: 'Feature',
-        geometry: f.geometry,
-        properties: {
-          nom: f.properties.name,
-          insee: f.properties.ref_INSEE,
-          type: 'commune-ancienne'
-        }
-      })
+    const codeCommuneActuelle = getCommuneActuelle(codeCommuneAncienne).code
+    const communeActuelleFeature = communesFeaturesIndex[codeCommuneActuelle]
+
+    if (COMMUNES_ANCIENNES_TYPES.has(f.properties.status)) {
+      communesAnciennesFeatures.push(intersect(f, communeActuelleFeature, {properties: {
+        nom: f.properties.nom,
+        code: codeCommuneAncienne,
+        type: 'commune-ancienne'
+      }}))
+    } else {
+      console.log(`Type de statut inconnu : ${f.properties.status}`)
     }
   }
 
-  const items = []
+  const duplicates = chain(communesAnciennesFeatures)
+    .countBy(f => f.properties.code)
+    .toPairs()
+    .filter(([, count]) => count > 1)
+    .value()
+
+  if (duplicates.length > 0) {
+    console.log(`Contours présents plusieurs fois : ${duplicates.map(d => d[0]).join(', ')}`)
+    console.log('Abandon!')
+    process.exit(1)
+  }
 
   console.time('sauvegarde')
-  await bluebird.each(features, async f => {
+  const items = []
+
+  for (const f of [...communesFeatures, ...communesAnciennesFeatures]) {
     const i = items.length
     const id = `item_${i}`
     await db.set(id, {
       nom: f.properties.nom,
-      code: f.properties.insee,
+      code: f.properties.code,
       type: f.properties.type,
       contour: f.geometry
     })
     items.push({id, bbox: bbox(f)})
-  })
+  }
+
   await db.set('items', items)
   console.timeEnd('sauvegarde')
 }

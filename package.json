@@ -29,7 +29,9 @@
   },
   "devDependencies": {
     "@turf/bbox": "^6.5.0",
+    "@turf/intersect": "^6.5.0",
     "bluebird": "^3.7.2",
+    "decompress": "^4.2.1",
     "got": "^11.8.3",
     "mapshaper": "^0.5.91",
     "xo": "^0.48.0"
@@ -44,6 +46,7 @@
       ],
       "unicorn/prefer-module": "off",
       "import/extensions": "off",
+      "no-await-in-loop": "off",
       "node/prefer-global/process": "off",
       "unicorn/no-array-reduce": "off",
       "unicorn/prefer-object-from-entries": "off"
