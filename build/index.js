@@ -24,7 +24,7 @@ const COMMUNES_ANCIENNES_TYPES = new Set([
 const DATA_DIR = path.join(__dirname, '..', 'data')
 
 async function main() {
-  const db = new Keyv('sqlite://db.sqlite')
+  const db = new Keyv('sqlite://gazetteer.sqlite')
   await db.clear()
   console.time('chargement des communes')
   const readCommunesFeatures = await readShapefile(path.join(DATA_DIR, COMMUNES_FILENAME))
