@@ -30,7 +30,8 @@
   "devDependencies": {
     "@turf/bbox": "^6.5.0",
     "bluebird": "^3.7.2",
-    "gdal-next": "^2.8.0",
+    "got": "^12.0.1",
+    "mapshaper": "^0.5.91",
     "xo": "^0.48.0"
   },
   "xo": {

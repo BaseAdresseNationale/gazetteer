@@ -1,14 +1,18 @@
 #!/usr/bin/env node --max-old-space-size=8192
-const path = require('path')
 const Keyv = require('keyv')
 const bluebird = require('bluebird')
+const got = require('got')
 const bbox = require('@turf/bbox').default
 const {getCommuneActuelle} = require('../lib/cog')
-const {readShapefile} = require('./shp')
+const {readShapefile} = require('./read-shapefile')
 
-const COMMUNES_FILENAME = 'communes-20190101-shp.zip'
-const COMMUNES_ANCIENNES_FILENAME = 'communes-anciennes-20190808-shp.zip'
-const ARRONDISSEMENTS_MUNICIPAUX_FILENAME = 'arrondissements-municipaux-20180711-shp.zip'
+const COMMUNES_URL = 'https://osm13.openstreetmap.fr/~cquest/openfla/export/communes-20190101-shp.zip'
+const COMMUNES_ANCIENNES_URL = 'https://osm13.openstreetmap.fr/~cquest/openfla/export/communes-anciennes-20190808-shp.zip'
+const ARRONDISSEMENTS_MUNICIPAUX_URL = 'https://osm13.openstreetmap.fr/~cquest/openfla/export/arrondissements-municipaux-20180711-shp.zip'
+
+function downloadFile(url) {
+  return got(url).buffer()
+}
 
 const PLM = new Set(['75056', '13055', '69123'])
 const COMMUNES_ANCIENNES_TYPES = new Set([
@@ -21,25 +25,26 @@ const COMMUNES_ANCIENNES_TYPES = new Set([
   'ancienne commune déléguée'
 ])
 
-const DATA_DIR = path.join(__dirname, '..', 'data')
-
 async function main() {
   const db = new Keyv('sqlite://gazetteer.sqlite')
   await db.clear()
   console.time('chargement des communes')
-  const readCommunesFeatures = await readShapefile(path.join(DATA_DIR, COMMUNES_FILENAME))
+  const communesFile = await downloadFile(COMMUNES_URL)
+  const readCommunesFeatures = await readShapefile(communesFile, 5)
   const communesFeatures = readCommunesFeatures
     .map(f => addType(f, 'commune'))
   console.timeEnd('chargement des communes')
 
   console.time('chargement des arrondissements municipaux')
-  const readArrondissementsMunicipauxFeatures = await readShapefile(path.join(DATA_DIR, ARRONDISSEMENTS_MUNICIPAUX_FILENAME))
+  const arrondissementsMunicipauxFile = await downloadFile(ARRONDISSEMENTS_MUNICIPAUX_URL)
+  const readArrondissementsMunicipauxFeatures = await readShapefile(arrondissementsMunicipauxFile, 5)
   const arrondissementsMunicipauxFeatures = readArrondissementsMunicipauxFeatures
     .map(f => addType(f, 'arrondissement-municipal'))
   console.timeEnd('chargement des arrondissements municipaux')
 
   console.time('chargement des communes anciennes')
-  const communesAnciennesFeatures = await readShapefile(path.join(DATA_DIR, COMMUNES_ANCIENNES_FILENAME))
+  const communesAnciennesFile = await downloadFile(COMMUNES_ANCIENNES_URL)
+  const communesAnciennesFeatures = await readShapefile(communesAnciennesFile, 5)
   console.timeEnd('chargement des communes anciennes')
 
   const features = [
