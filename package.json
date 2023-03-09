@@ -19,7 +19,7 @@
     "build": "node --max-old-space-size=8192 build"
   },
   "dependencies": {
-    "@etalab/decoupage-administratif": "^2.0.0",
+    "@etalab/decoupage-administratif": "^3.0.0",
     "@keyv/sqlite": "^3.0.0",
     "@turf/boolean-point-in-polygon": "^6.5.0",
     "flatbush": "^3.3.0",
