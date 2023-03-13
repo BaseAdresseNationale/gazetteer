@@ -1,5 +1,5 @@
 {
-  "name": "@etalab/gazetteer",
+  "name": "@ban-team/gazetteer",
   "version": "1.0.0",
   "description": "Lightweight gazetteer for France 🇫🇷",
   "main": "index.js",
