@@ -1,4 +1,4 @@
-# @etalab/gazetteer
+# @ban-team/gazetteer
 
 Bibliothèque permettant de déterminer le découpage administratif dans lequel se trouve des coordonnées géographiques au format WGS-84.
 
@@ -24,7 +24,7 @@ NB : Les géométries des collectivités d'outremer proviennent d'OSM.
 ⚠️ Le chemin d’accès aux données doit être renseigné, soit via le paramètre `dbPath`, soit via la variable d’environnement `GAZETTEER_DB_PATH`.
 
 ```js
-const {createGazetteer} = require('@etalab/gazetteer')
+const {createGazetteer} = require('@ban-team/gazetteer')
 
 const g = await createGazetteer(options)
 await g.find({lon: 5.9225, lat: 49.2741})
