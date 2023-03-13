@@ -1,6 +1,6 @@
 {
   "name": "@ban-team/gazetteer",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Lightweight gazetteer for France 🇫🇷",
   "main": "index.js",
   "repository": "https://github.com/BaseAdresseNationale/gazetteer",
