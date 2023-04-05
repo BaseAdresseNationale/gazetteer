@@ -20,20 +20,20 @@
   },
   "dependencies": {
     "@etalab/decoupage-administratif": "^3.0.0",
-    "@keyv/sqlite": "^3.0.0",
+    "@keyv/sqlite": "^3.6.5",
     "@turf/boolean-point-in-polygon": "^6.5.0",
-    "flatbush": "^3.3.0",
-    "keyv": "^4.1.1",
+    "flatbush": "^3.3.1",
+    "keyv": "^4.5.2",
     "lodash": "^4.17.21",
-    "lru-cache": "^7.4.0"
+    "lru-cache": "^7.18.3"
   },
   "devDependencies": {
     "@turf/bbox": "^6.5.0",
     "@turf/intersect": "^6.5.0",
     "bluebird": "^3.7.2",
     "decompress": "^4.2.1",
-    "got": "^11.8.3",
-    "mapshaper": "^0.5.91",
+    "got": "^11.8.6",
+    "mapshaper": "^0.5.118",
     "xo": "^0.48.0"
   },
   "xo": {
