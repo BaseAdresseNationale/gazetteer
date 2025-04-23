@@ -11,8 +11,8 @@ const {readShapefile} = require('./read-shapefile')
 
 const gunzip = promisify(zlib.gunzip)
 
-const COMMUNES_URL = 'http://etalab-datasets.geo.data.gouv.fr/contours-administratifs/2024/geojson/communes-5m.geojson.gz'
-const COMMUNES_ANCIENNES_URL = 'https://adresse.data.gouv.fr/data/communes-anciennes/communes_anciennes_2024.zip'
+const COMMUNES_URL = 'http://etalab-datasets.geo.data.gouv.fr/contours-administratifs/2025/geojson/communes-5m.geojson.gz'
+const COMMUNES_ANCIENNES_URL = 'https://adresse.data.gouv.fr/data/communes-anciennes/communes_anciennes_2025.zip'
 
 function downloadFile(url) {
   return got(url).buffer()
